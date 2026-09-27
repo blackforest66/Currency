@@ -1094,6 +1094,11 @@ window.CrewTheme = (() => {
   window.addEventListener('orientationchange', () => setTimeout(fitHeight, 300));
   window.addEventListener('pageshow', fitHeight);
 
+  // ---------- Offline: keep the app on the phone so it opens without signal ----------
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
+  }
+
   // ---------- Start ----------
   const saved = readSaved();
   if (saved && saved.rates) {
