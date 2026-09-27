@@ -1,5 +1,7 @@
 # Crew FX — currency calculator
 
+Currency exchange calculator for Zina.
+
 A one-page, phone-friendly currency calculator for cabin crew.
 
 - Pick the **local currency** of wherever you've landed (dropdown or one-tap chips).
