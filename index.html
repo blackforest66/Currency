@@ -107,6 +107,7 @@ window.CrewTheme = (() => {
     --live: #34c759;
     --stale: #ff9f0a;
     --err: #ff3b30;
+    --ring: rgba(200, 16, 46, 0.16);
   }
   /* Night palette: set by the day/night script below (falls back to the phone's setting without JS). */
   :root[data-theme="dark"] {
@@ -121,6 +122,7 @@ window.CrewTheme = (() => {
     --field: #2c2c2e;
     --nav: rgba(22, 22, 23, 0.8);
     --scrim: rgba(0, 0, 0, 0.6);
+    --ring: rgba(255, 95, 107, 0.28);
   }
   @media (prefers-color-scheme: dark) {
     :root:not([data-theme]) {
@@ -135,6 +137,8 @@ window.CrewTheme = (() => {
       --field: #2c2c2e;
       --nav: rgba(22, 22, 23, 0.8);
       --scrim: rgba(0, 0, 0, 0.6);
+      --ring: rgba(255, 95, 107, 0.28);
+    --ring: rgba(255, 95, 107, 0.28);
     }
   }
   :root { color-scheme: light; }
@@ -253,23 +257,36 @@ window.CrewTheme = (() => {
   .local-head .flag { font-size: 22px; line-height: 1; }
   .local-head .code { font-weight: 600; }
   .local-head .name { color: var(--ink-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  /* Amount fields look like fields: filled box, border, pencil icon, accent ring when editing. */
+  .amount-field { position: relative; margin-top: 8px; }
+  .amount-field .pencil {
+    position: absolute; right: 14px; top: 50%; transform: translateY(-50%);
+    width: 22px; height: 22px; color: var(--ink-3); pointer-events: none;
+  }
+  .amount-field:focus-within .pencil { color: var(--accent); }
   input.big {
     display: block;
     width: 100%;
-    margin-top: 2px;
-    border: 0;
-    background: transparent;
+    border: 1.5px solid var(--hairline);
+    border-radius: 14px;
+    background: var(--field);
+    padding: 4px 48px 4px 14px;
+    transition: border-color .15s, box-shadow .15s, background-color .15s;
     color: var(--ink);
     font-size: clamp(34px, 10vw, 46px);
     line-height: 1.15;
     font-weight: 600;
     letter-spacing: -0.02em;
     font-variant-numeric: tabular-nums;
-    padding: 0;
     outline: none;
     caret-color: var(--accent);
   }
-  .local-card .hint { font-size: 13px; color: var(--ink-3); }
+  input.big:focus, input.amt:focus {
+    border-color: var(--accent);
+    background: var(--surface);
+    box-shadow: 0 0 0 4px var(--ring);
+  }
+  .local-card .hint { font-size: 13px; color: var(--ink-3); margin-top: 6px; }
 
   .section-title {
     flex: none;
@@ -302,24 +319,23 @@ window.CrewTheme = (() => {
   }
   .row .flag { font-size: 26px; line-height: 1; }
   .row .code { font-weight: 600; font-size: 17px; line-height: 1.2; }
-  .row .rate { font-size: 13px; color: var(--ink-2); letter-spacing: -0.01em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .row .rate { font-size: 12px; color: var(--ink-2); letter-spacing: -0.01em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   input.amt {
-    width: 34vw;
-    max-width: 200px;
-    border: 0;
-    border-radius: 10px;
-    background: transparent;
+    width: 32vw;
+    max-width: 190px;
+    border: 1.5px solid var(--hairline);
+    border-radius: 12px;
+    background: var(--field);
     color: var(--ink);
     text-align: right;
-    font-size: 22px;
+    font-size: 21px;
     font-weight: 600;
     font-variant-numeric: tabular-nums;
-    padding: 6px 8px;
+    padding: 6px 10px;
     outline: none;
-    transition: background-color .15s;
+    transition: border-color .15s, box-shadow .15s, background-color .15s;
     caret-color: var(--accent);
   }
-  input.amt:focus { background: var(--field); }
 
   /* Small phones (iPhone SE / mini): tighten the top half. */
   @media (max-height: 700px) {
@@ -436,7 +452,7 @@ window.CrewTheme = (() => {
   </section>
 
   <div class="card local-card" id="localCard"></div>
-  <h2 class="section-title">Converted · tap any amount to edit</h2>
+  <h2 class="section-title">Converted · tap a box to change the amount</h2>
   <div class="card" id="rows"></div>
 </div>
 
@@ -635,7 +651,10 @@ window.CrewTheme = (() => {
           <span class="code">${local}</span>
           <span class="name">${esc(nameOf(local))}</span>
         </div>
-        <input class="big amt-input" data-code="${local}" inputmode="decimal" autocomplete="off" aria-label="${esc(nameOf(local))} amount">
+        <div class="amount-field">
+          <input class="big amt-input" data-code="${local}" inputmode="decimal" autocomplete="off" aria-label="${esc(nameOf(local))} amount">
+          <svg class="pencil" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16v4z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M13.5 6.5l4 4" stroke="currentColor" stroke-width="1.8"/></svg>
+        </div>
         <div class="hint" id="localHint"></div>`;
     }
 
