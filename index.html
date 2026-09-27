@@ -3,8 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#f5f5f7" media="(prefers-color-scheme: light)">
-<meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#f5f5f7" id="themeColor">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Crew FX">
@@ -13,6 +12,85 @@
 <link rel="icon" href="icons/favicon-32.png" sizes="32x32" type="image/png">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <link rel="manifest" href="manifest.webmanifest">
+<script>
+// ---------- Day / night ----------
+// Auto: light between sunrise and sunset where she is (from the last GPS fix), dark at night.
+// Without a location it uses the phone's clock (07:00–19:00 is day). She can also force Light or Dark.
+window.CrewTheme = (() => {
+  const MODES = ['auto', 'light', 'dark'];
+  const get = (k) => { try { return localStorage.getItem(k); } catch { return null; } };
+  const set = (k, v) => { try { localStorage.setItem(k, v); } catch {} };
+  let mode = MODES.includes(get('crewfx.theme')) ? get('crewfx.theme') : 'auto';
+  let coords = null;
+  try { coords = JSON.parse(get('crewfx.coords')); } catch {}
+
+  const rad = Math.PI / 180;
+  // Sunrise/sunset (as ms timestamps) for the solar day n, via the standard sunrise equation.
+  function sunDay(n, lat, lon) {
+    const J = n - lon / 360;
+    const M = (357.5291 + 0.98560028 * J) % 360;
+    const C = 1.9148 * Math.sin(M * rad) + 0.02 * Math.sin(2 * M * rad) + 0.0003 * Math.sin(3 * M * rad);
+    const L = (M + C + 180 + 102.9372) % 360;
+    const transit = 2451545 + J + 0.0053 * Math.sin(M * rad) - 0.0069 * Math.sin(2 * L * rad);
+    const decl = Math.asin(Math.sin(L * rad) * Math.sin(23.4397 * rad));
+    const cosW = (Math.sin(-0.833 * rad) - Math.sin(lat * rad) * Math.sin(decl)) / (Math.cos(lat * rad) * Math.cos(decl));
+    if (cosW > 1) return 'night';   // polar night
+    if (cosW < -1) return 'day';    // midnight sun
+    const w = Math.acos(cosW) / rad / 360;
+    const toMs = (jd) => (jd - 2440587.5) * 86400000;
+    return { rise: toMs(transit - w), set: toMs(transit + w) };
+  }
+
+  function isDay(now = Date.now()) {
+    if (!coords) {
+      const h = new Date(now).getHours();
+      return h >= 7 && h < 19;
+    }
+    const n = Math.ceil(now / 86400000 + 2440587.5 - 2451545 + 0.0008);
+    // Check neighbouring solar days too, so any longitude and time of day resolves correctly.
+    for (const d of [n - 1, n, n + 1]) {
+      const t = sunDay(d, coords.lat, coords.lon);
+      if (t === 'day') return true;
+      if (t === 'night') return false;
+      if (now >= t.rise && now < t.set) return true;
+    }
+    return false;
+  }
+
+  function current() {
+    return mode === 'auto' ? (isDay() ? 'light' : 'dark') : mode;
+  }
+
+  const listeners = [];
+  function apply() {
+    const theme = current();
+    document.documentElement.dataset.theme = theme;
+    const meta = document.getElementById('themeColor');
+    if (meta) meta.content = theme === 'dark' ? '#000000' : '#f5f5f7';
+    listeners.forEach(fn => fn(mode, theme));
+  }
+
+  apply();
+  setInterval(apply, 60 * 1000);
+
+  return {
+    get mode() { return mode; },
+    cycle() {
+      mode = MODES[(MODES.indexOf(mode) + 1) % MODES.length];
+      set('crewfx.theme', mode);
+      apply();
+    },
+    setCoords(lat, lon) {
+      coords = { lat, lon };
+      set('crewfx.coords', JSON.stringify(coords));
+      apply();
+    },
+    onChange(fn) { listeners.push(fn); fn(mode, current()); },
+    apply,
+    isDay,
+  };
+})();
+</script>
 <style>
   :root {
     --bg: #f5f5f7;
@@ -30,8 +108,22 @@
     --stale: #ff9f0a;
     --err: #ff3b30;
   }
+  /* Night palette: set by the day/night script below (falls back to the phone's setting without JS). */
+  :root[data-theme="dark"] {
+    --bg: #000000;
+    --surface: #1c1c1e;
+    --ink: #f5f5f7;
+    --ink-2: #a1a1a6;
+    --ink-3: #8e8e93;
+    --hairline: #38383a;
+    --blue: #0a84ff;
+    --link: #2997ff;
+    --field: #2c2c2e;
+    --nav: rgba(22, 22, 23, 0.8);
+    --scrim: rgba(0, 0, 0, 0.6);
+  }
   @media (prefers-color-scheme: dark) {
-    :root {
+    :root:not([data-theme]) {
       --bg: #000000;
       --surface: #1c1c1e;
       --ink: #f5f5f7;
@@ -45,6 +137,9 @@
       --scrim: rgba(0, 0, 0, 0.6);
     }
   }
+  :root { color-scheme: light; }
+  :root[data-theme="dark"] { color-scheme: dark; }
+  body { transition: background-color .4s, color .4s; }
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
   html, body { margin: 0; }
   body {
@@ -81,6 +176,13 @@
   }
   .brand { display: flex; align-items: center; gap: 8px; font-size: 17px; font-weight: 600; }
   .brand img { width: 22px; height: 22px; border-radius: 6px; }
+  .top-actions { display: flex; align-items: center; gap: 14px; }
+  .theme-btn {
+    display: inline-flex; align-items: center; gap: 4px;
+    background: none; border: 0; padding: 6px 0;
+    font-size: 14px; color: var(--link); cursor: pointer;
+  }
+  .theme-btn svg { width: 16px; height: 16px; }
   .nav-link {
     background: none;
     border: 0;
@@ -267,7 +369,7 @@
     padding: 0 12px;
     height: 44px;
   }
-  @media (prefers-color-scheme: light) { .search { background: rgba(118, 118, 128, .12); } }
+  :root:not([data-theme="dark"]) .search { background: rgba(118, 118, 128, .12); }
   .search svg { flex: none; color: var(--ink-3); }
   .search input {
     flex: 1; min-width: 0;
@@ -316,7 +418,10 @@
 <div class="app">
   <header class="top">
     <div class="brand"><img src="icons/icon.svg" alt="">Crew FX</div>
-    <button class="nav-link" id="refreshBtn" type="button">Refresh rates</button>
+    <div class="top-actions">
+      <button class="theme-btn" id="themeBtn" type="button" aria-label="Day/night mode"></button>
+      <button class="nav-link" id="refreshBtn" type="button">Refresh rates</button>
+    </div>
   </header>
 
   <section class="hero">
@@ -695,9 +800,24 @@
   });
 
   $('refreshBtn').addEventListener('click', loadRates);
+
+  // Day/night button: Auto → Light → Dark.
+  const THEME_ICONS = {
+    auto: '<svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6.25" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M8 1.75a6.25 6.25 0 0 1 0 12.5z" fill="currentColor"/></svg>',
+    light: '<svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="3.2" fill="currentColor"/><g stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M8 1v1.6M8 13.4V15M1 8h1.6M13.4 8H15M3.05 3.05l1.13 1.13M11.82 11.82l1.13 1.13M3.05 12.95l1.13-1.13M11.82 4.18l1.13-1.13"/></g></svg>',
+    dark: '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M13.5 10.2A6 6 0 0 1 5.8 2.5a6 6 0 1 0 7.7 7.7z" fill="currentColor"/></svg>',
+  };
+  const THEME_LABELS = { auto: 'Auto', light: 'Light', dark: 'Dark' };
+  CrewTheme.onChange((mode, theme) => {
+    const btn = $('themeBtn');
+    btn.innerHTML = THEME_ICONS[mode] + THEME_LABELS[mode];
+    btn.title = mode === 'auto' ? `Auto: ${theme === 'dark' ? 'night' : 'day'} where you are (switches at sunrise/sunset)` : `${THEME_LABELS[mode]} mode`;
+  });
+  $('themeBtn').addEventListener('click', () => CrewTheme.cycle());
   $('locateBtn').addEventListener('click', () => detectLocation(true));
   document.addEventListener('visibilitychange', () => {
     if (document.hidden) return;
+    CrewTheme.apply();
     loadRates();
     detectLocation(false);
   });
@@ -714,6 +834,7 @@
   // GPS / network position, turned into a country code.
   async function countryFromGps() {
     const { latitude, longitude } = (await getPosition()).coords;
+    CrewTheme.setCoords(latitude, longitude);   // for sunrise/sunset in Auto mode
     const r = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=en`);
     const j = await r.json();
     if (!j.countryCode) throw new Error('no country');

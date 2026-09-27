@@ -7,6 +7,7 @@ A one-page, phone-friendly currency calculator for cabin crew.
 - The **local currency is set automatically** from her location: phone GPS first (asks permission once), falling back to the network location. It re-checks when the app is reopened, and a manual choice sticks until she is in a new country. Tap **Use my location** to re-check, or **Change currency** to search by country, currency name or code (e.g. "Japan", "yen", "JPY").
 - **AED, KRW, CAD and USD** are always shown on the same page.
 - Type an amount in **any** box and all the others convert instantly.
+- **Auto day/night**: light between sunrise and sunset where she is (from her last GPS fix, or 07:00–19:00 on the phone clock if location is off), dark at night. Tap the **Auto / Light / Dark** button in the top bar to force one.
 - **Live rates** (free, no API key): `open.er-api.com`, with `fawazahmed0/currency-api` as a fallback. Auto-refreshes every 5 minutes and whenever the app is reopened.
 - The last rates are saved on the phone, so it still works offline in flight (marked "Offline · using saved rates").
 
