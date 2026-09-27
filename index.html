@@ -3,8 +3,10 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#0f2a44">
+<meta name="theme-color" content="#f5f5f7" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
 <meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Crew FX">
 <title>Crew FX</title>
 <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
@@ -13,217 +15,362 @@
 <link rel="manifest" href="manifest.webmanifest">
 <style>
   :root {
-    --bg: #f3f5f8;
-    --card: #ffffff;
-    --ink: #14202e;
-    --muted: #64748b;
-    --line: #e2e8f0;
-    --accent: #0f2a44;
-    --accent-2: #c9a24a;
-    --focus: #2563eb;
-    --ok: #15803d;
-    --warn: #b45309;
+    --bg: #f5f5f7;
+    --surface: #ffffff;
+    --ink: #1d1d1f;
+    --ink-2: #6e6e73;
+    --ink-3: #86868b;
+    --hairline: #d2d2d7;
+    --blue: #0071e3;
+    --link: #0066cc;
+    --field: #f5f5f7;
+    --nav: rgba(245, 245, 247, 0.8);
+    --scrim: rgba(0, 0, 0, 0.32);
+    --live: #34c759;
+    --stale: #ff9f0a;
+    --err: #ff3b30;
   }
   @media (prefers-color-scheme: dark) {
     :root {
-      --bg: #0b1320;
-      --card: #142033;
-      --ink: #e8eef6;
-      --muted: #94a3b8;
-      --line: #22324a;
-      --accent: #0a1a2c;
-      --accent-2: #d8b25c;
-      --focus: #60a5fa;
-      --ok: #4ade80;
-      --warn: #fbbf24;
+      --bg: #000000;
+      --surface: #1c1c1e;
+      --ink: #f5f5f7;
+      --ink-2: #a1a1a6;
+      --ink-3: #8e8e93;
+      --hairline: #38383a;
+      --blue: #0a84ff;
+      --link: #2997ff;
+      --field: #2c2c2e;
+      --nav: rgba(22, 22, 23, 0.8);
+      --scrim: rgba(0, 0, 0, 0.6);
     }
   }
-  * { box-sizing: border-box; }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
   html, body { margin: 0; }
   body {
     background: var(--bg);
     color: var(--ink);
-    font: 16px/1.4 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Helvetica Neue", Helvetica, Arial, sans-serif;
+    font-size: 17px;
+    line-height: 1.47;
+    letter-spacing: -0.022em;
     -webkit-font-smoothing: antialiased;
     min-height: 100vh;
   }
-  header {
-    background: var(--accent);
-    color: #fff;
-    padding: calc(env(safe-area-inset-top) + 18px) 16px 22px;
+  button { font: inherit; letter-spacing: inherit; color: inherit; }
+  input { font: inherit; letter-spacing: inherit; }
+
+  /* ---------- Nav ---------- */
+  nav {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    padding-top: env(safe-area-inset-top);
+    background: var(--nav);
+    backdrop-filter: saturate(180%) blur(20px);
+    -webkit-backdrop-filter: saturate(180%) blur(20px);
+    border-bottom: 0.5px solid var(--hairline);
   }
-  .wrap { max-width: 520px; margin: 0 auto; }
-  h1 {
-    margin: 0;
-    font-size: 20px;
-    font-weight: 650;
-    letter-spacing: .2px;
-  }
-  h1 span { color: var(--accent-2); }
-  .status {
-    margin-top: 6px;
-    font-size: 13px;
-    color: #b8c4d4;
+  nav .inner {
+    height: 44px;
+    max-width: 680px;
+    margin: 0 auto;
+    padding: 0 16px;
     display: flex;
     align-items: center;
-    gap: 8px;
-    flex-wrap: wrap;
+    justify-content: space-between;
   }
-  .dot { width: 8px; height: 8px; border-radius: 50%; background: #94a3b8; flex: none; }
-  .dot.live { background: #4ade80; }
-  .dot.stale { background: #fbbf24; }
-  .dot.err { background: #f87171; }
-  button.refresh {
-    margin-left: auto;
-    background: transparent;
-    color: #fff;
-    border: 1px solid rgba(255,255,255,.3);
-    border-radius: 999px;
-    padding: 4px 12px;
-    font: inherit;
-    font-size: 13px;
+  .brand { display: flex; align-items: center; gap: 8px; font-size: 17px; font-weight: 600; }
+  .brand img { width: 22px; height: 22px; border-radius: 6px; }
+  .nav-link {
+    background: none;
+    border: 0;
+    padding: 6px 0;
+    font-size: 14px;
+    color: var(--link);
     cursor: pointer;
   }
-  button.refresh:active { background: rgba(255,255,255,.1); }
 
-  main { padding: 0 16px 32px; }
-  .local {
-    background: var(--card);
-    border-radius: 16px;
-    margin-top: -12px;
-    padding: 14px 16px 16px;
-    box-shadow: 0 6px 20px rgba(15, 42, 68, .12);
+  /* ---------- Hero ---------- */
+  .hero {
+    text-align: center;
+    padding: 44px 16px 28px;
+    max-width: 680px;
+    margin: 0 auto;
   }
-  .local label.small {
-    display: block;
-    font-size: 12px;
-    text-transform: uppercase;
-    letter-spacing: .08em;
-    color: var(--muted);
-    margin-bottom: 6px;
+  .eyebrow {
+    font-size: 17px;
+    font-weight: 600;
+    color: var(--ink-2);
+    margin: 0 0 4px;
   }
-  select {
-    width: 100%;
-    font: inherit;
-    font-size: 16px;
-    padding: 10px 12px;
-    border: 1px solid var(--line);
-    border-radius: 10px;
-    background: var(--bg);
+  .hero h1 {
+    font-size: clamp(40px, 11vw, 56px);
+    line-height: 1.07;
+    letter-spacing: -0.005em;
+    font-weight: 600;
+    margin: 0;
+  }
+  .hero .sub {
+    font-size: clamp(19px, 5vw, 24px);
+    line-height: 1.2;
+    font-weight: 400;
     color: var(--ink);
-    appearance: none;
-    background-image: linear-gradient(45deg, transparent 50%, var(--muted) 50%), linear-gradient(135deg, var(--muted) 50%, transparent 50%);
-    background-position: calc(100% - 18px) 50%, calc(100% - 13px) 50%;
-    background-size: 5px 5px;
-    background-repeat: no-repeat;
+    margin: 8px 0 0;
   }
-  .rows { margin-top: 14px; display: grid; gap: 10px; }
+  .ctas { display: flex; justify-content: center; gap: 12px; margin-top: 20px; flex-wrap: wrap; }
+  .pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 44px;
+    padding: 0 22px;
+    border-radius: 980px;
+    font-size: 17px;
+    cursor: pointer;
+    border: 1px solid var(--blue);
+    transition: background-color .2s, opacity .2s;
+  }
+  .pill.primary { background: var(--blue); color: #fff; }
+  .pill.secondary { background: transparent; color: var(--blue); }
+  .pill:active { opacity: .7; }
+  .pill:disabled { opacity: .5; cursor: default; }
+  .status {
+    margin-top: 18px;
+    font-size: 12px;
+    color: var(--ink-3);
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    letter-spacing: -0.01em;
+  }
+  .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--ink-3); flex: none; }
+  .dot.live { background: var(--live); }
+  .dot.stale { background: var(--stale); }
+  .dot.err { background: var(--err); }
+
+  /* ---------- Converter ---------- */
+  main { max-width: 680px; margin: 0 auto; padding: 0 16px 40px; }
+  .card {
+    background: var(--surface);
+    border-radius: 18px;
+    overflow: hidden;
+  }
+  .card + .section-title { margin-top: 32px; }
+  .local-card { padding: 20px 20px 18px; }
+  .local-head { display: flex; align-items: center; gap: 10px; }
+  .local-head .flag { font-size: 24px; }
+  .local-head .code { font-weight: 600; }
+  .local-head .name { color: var(--ink-2); }
+  input.big {
+    display: block;
+    width: 100%;
+    margin-top: 6px;
+    border: 0;
+    background: transparent;
+    color: var(--ink);
+    font-size: clamp(40px, 12vw, 56px);
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    font-variant-numeric: tabular-nums;
+    padding: 0;
+    outline: none;
+    caret-color: var(--blue);
+  }
+  .local-card .hint { font-size: 14px; color: var(--ink-3); margin-top: 2px; }
+
+  .section-title {
+    font-size: 24px;
+    font-weight: 600;
+    letter-spacing: 0.009em;
+    margin: 32px 4px 12px;
+  }
   .row {
-    background: var(--card);
-    border: 1px solid var(--line);
-    border-radius: 14px;
-    padding: 12px 14px;
     display: grid;
-    grid-template-columns: auto 1fr;
+    grid-template-columns: 32px minmax(0, 1fr) auto;
     align-items: center;
     column-gap: 12px;
+    padding: 14px 16px 14px 20px;
+    position: relative;
   }
-  .row.is-local { border-color: var(--accent-2); border-width: 2px; }
-  .flag { font-size: 28px; line-height: 1; }
-  .meta { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
-  .code { font-weight: 700; font-size: 15px; }
-  .name { color: var(--muted); font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .rate { grid-column: 1 / -1; color: var(--muted); font-size: 12px; margin-top: 6px; }
+  .row + .row::before {
+    content: "";
+    position: absolute;
+    top: 0; right: 0; left: 64px;
+    border-top: 0.5px solid var(--hairline);
+  }
+  .row .flag { font-size: 28px; line-height: 1; }
+  .row .code { font-weight: 600; font-size: 17px; }
+  .row .rate { font-size: 13px; color: var(--ink-2); letter-spacing: -0.01em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   input.amt {
-    grid-column: 1 / -1;
-    margin-top: 6px;
-    width: 100%;
-    font: inherit;
-    font-size: 26px;
-    font-weight: 600;
-    font-variant-numeric: tabular-nums;
-    padding: 6px 10px;
-    border: 1px solid transparent;
+    width: 36vw;
+    max-width: 220px;
+    border: 0;
     border-radius: 10px;
-    background: var(--bg);
+    background: transparent;
     color: var(--ink);
     text-align: right;
+    font-size: 22px;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    padding: 6px 8px;
+    outline: none;
+    transition: background-color .15s;
+    caret-color: var(--blue);
   }
-  input.amt:focus { outline: none; border-color: var(--focus); }
-  .label-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
-  .label-row label.small { margin-bottom: 0; }
-  button.locate {
-    font: inherit;
-    font-size: 13px;
-    padding: 4px 10px;
-    border-radius: 999px;
-    border: 1px solid var(--line);
+  input.amt:focus { background: var(--field); }
+
+  footer {
+    max-width: 680px;
+    margin: 0 auto;
+    padding: 8px 20px calc(32px + env(safe-area-inset-bottom));
+    font-size: 12px;
+    line-height: 1.33;
+    color: var(--ink-3);
+  }
+  footer p { margin: 0 0 8px; }
+
+  /* ---------- Currency picker sheet ---------- */
+  .scrim {
+    position: fixed; inset: 0; z-index: 20;
+    background: var(--scrim);
+    opacity: 0; pointer-events: none;
+    transition: opacity .25s;
+  }
+  .sheet {
+    position: fixed; z-index: 21;
+    left: 0; right: 0; bottom: 0;
+    margin: 0 auto;
+    max-width: 680px;
+    height: min(88vh, 720px);
     background: var(--bg);
-    color: var(--ink);
-    cursor: pointer;
+    border-radius: 18px 18px 0 0;
+    display: flex; flex-direction: column;
+    transform: translateY(105%);
+    transition: transform .32s cubic-bezier(.32, .72, 0, 1);
+    padding-bottom: env(safe-area-inset-bottom);
   }
-  button.locate:disabled { opacity: .6; }
-  .detected { font-size: 12px; color: var(--muted); margin-top: 6px; min-height: 1em; }
-  .quick { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
-  .quick button {
-    flex: 1 1 auto;
-    font: inherit;
-    font-size: 14px;
-    padding: 8px 10px;
-    border-radius: 999px;
-    border: 1px solid var(--line);
-    background: var(--bg);
-    color: var(--ink);
-    cursor: pointer;
+  body.picking .scrim { opacity: 1; pointer-events: auto; }
+  body.picking .sheet { transform: translateY(0); }
+  body.picking { overflow: hidden; }
+  .grabber { width: 36px; height: 5px; border-radius: 3px; background: var(--hairline); margin: 8px auto 0; }
+  .sheet-head {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 16px 8px;
   }
-  .quick button:active { border-color: var(--focus); }
-  .note { color: var(--muted); font-size: 12px; margin-top: 18px; text-align: center; }
-  .error { color: var(--warn); }
+  .sheet-head h2 { font-size: 17px; font-weight: 600; margin: 0; }
+  .search {
+    margin: 0 16px 8px;
+    display: flex; align-items: center; gap: 8px;
+    background: var(--field);
+    border-radius: 12px;
+    padding: 0 12px;
+    height: 44px;
+  }
+  @media (prefers-color-scheme: light) { .search { background: rgba(118, 118, 128, .12); } }
+  .search svg { flex: none; color: var(--ink-3); }
+  .search input {
+    flex: 1; min-width: 0;
+    border: 0; background: transparent; outline: none;
+    color: var(--ink);
+    font-size: 17px;
+  }
+  .search input::placeholder { color: var(--ink-3); }
+  .results { overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 0 16px 16px; flex: 1; }
+  .group-label {
+    font-size: 13px; text-transform: uppercase; letter-spacing: 0;
+    color: var(--ink-2);
+    margin: 16px 4px 6px;
+  }
+  .opt {
+    display: grid;
+    grid-template-columns: 32px 1fr auto;
+    align-items: center;
+    column-gap: 12px;
+    width: 100%;
+    padding: 11px 16px;
+    background: var(--surface);
+    border: 0;
+    text-align: left;
+    cursor: pointer;
+    position: relative;
+  }
+  .opt:first-of-type { border-radius: 12px 12px 0 0; }
+  .opt:last-of-type { border-radius: 0 0 12px 12px; }
+  .opt:only-of-type { border-radius: 12px; }
+  .opt + .opt::before {
+    content: ""; position: absolute; top: 0; right: 0; left: 60px;
+    border-top: 0.5px solid var(--hairline);
+  }
+  .opt:active { background: var(--field); }
+  .opt .flag { font-size: 24px; line-height: 1; }
+  .opt .t { font-size: 17px; }
+  .opt .s { font-size: 13px; color: var(--ink-2); }
+  .opt .c { font-size: 15px; color: var(--ink-2); font-variant-numeric: tabular-nums; }
+  .opt.selected .c { color: var(--blue); font-weight: 600; }
+  .empty { color: var(--ink-2); text-align: center; padding: 32px 16px; font-size: 15px; }
+  .group { display: flex; flex-direction: column; }
 </style>
 </head>
 <body>
-<header>
-  <div class="wrap">
-    <h1>Crew <span>FX</span></h1>
-    <div class="status">
-      <span class="dot" id="dot"></span>
-      <span id="statusText">Loading live rates…</span>
-      <button class="refresh" id="refreshBtn" type="button">Refresh</button>
-    </div>
+<nav>
+  <div class="inner">
+    <div class="brand"><img src="icons/icon.svg" alt="">Crew FX</div>
+    <button class="nav-link" id="refreshBtn" type="button">Refresh rates</button>
   </div>
-</header>
+</nav>
+
+<section class="hero">
+  <p class="eyebrow" id="eyebrow">Local currency</p>
+  <h1 id="place">—</h1>
+  <p class="sub" id="placeSub">Loading…</p>
+  <div class="ctas">
+    <button class="pill primary" id="changeBtn" type="button">Change currency</button>
+    <button class="pill secondary" id="locateBtn" type="button">Use my location</button>
+  </div>
+  <div><span class="status"><span class="dot" id="dot"></span><span id="statusText">Loading live rates…</span></span></div>
+</section>
 
 <main>
-  <div class="wrap">
-    <section class="local">
-      <div class="label-row">
-        <label class="small" for="localSel">I'm in (local currency)</label>
-        <button class="locate" id="locateBtn" type="button">📍 Detect</button>
-      </div>
-      <select id="localSel"></select>
-      <div class="detected" id="detected"></div>
-      <div class="quick" id="quick"></div>
-    </section>
-
-    <div class="rows" id="rows"></div>
-
-    <p class="note">
-      Type in any box — the others convert instantly.<br>
-      Mid-market rates, auto-refresh every 5 min. Last rates are saved for offline use in flight.
-    </p>
-  </div>
+  <div class="card local-card" id="localCard"></div>
+  <h2 class="section-title">Converted</h2>
+  <div class="card" id="rows"></div>
 </main>
+
+<footer>
+  <p>Type in any amount and everything else converts instantly.</p>
+  <p id="footSource">Mid-market rates, refreshed every 5 minutes. The latest rates are saved on this device, so the calculator keeps working offline in flight.</p>
+</footer>
+
+<div class="scrim" id="scrim"></div>
+<div class="sheet" id="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitle">
+  <div class="grabber"></div>
+  <div class="sheet-head">
+    <h2 id="sheetTitle">Choose currency</h2>
+    <button class="nav-link" id="doneBtn" type="button" style="font-size:17px">Done</button>
+  </div>
+  <label class="search">
+    <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="5.25" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M11 11l3.5 3.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+    <input id="search" type="search" placeholder="Country, currency or code" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" enterkeyhint="go">
+  </label>
+  <div class="results" id="results"></div>
+</div>
 
 <script>
 (() => {
   // Her most used currencies, always shown.
   const FAVOURITES = ['AED', 'KRW', 'CAD', 'USD'];
   const REFRESH_MS = 5 * 60 * 1000;
+  const DETECT_EVERY_MS = 30 * 60 * 1000;
   const STORE_RATES = 'crewfx.rates';
   const STORE_LOCAL = 'crewfx.local';
   const STORE_AMOUNT = 'crewfx.amount';
-  const STORE_COUNTRY = 'crewfx.country';
-  const DETECT_EVERY_MS = 30 * 60 * 1000;
+  const STORE_COUNTRY = 'crewfx.country';   // last detected country
+  const STORE_PLACE = 'crewfx.place';       // country shown in the headline
+  const STORE_RECENT = 'crewfx.recent';
+
+  // Common crew destinations suggested in the picker.
+  const SUGGESTED = ['THB', 'EUR', 'GBP', 'JPY', 'INR', 'SGD', 'HKD', 'AUD', 'CNY', 'SAR', 'QAR', 'TRY'];
 
   // ISO country code → currency code.
   const COUNTRY_CURRENCY = Object.fromEntries(`
@@ -246,44 +393,52 @@
     YT:EUR ZA:ZAR ZM:ZMW ZW:ZWL
   `.trim().split(/\s+/).map(p => p.split(':')));
 
-  // Common crew destinations shown as one-tap chips (plus the last used).
-  const QUICK = ['THB', 'EUR', 'GBP', 'JPY', 'INR', 'SGD'];
-
   const $ = (id) => document.getElementById(id);
   const store = {
     get(k) { try { return localStorage.getItem(k); } catch { return null; } },
     set(k, v) { try { localStorage.setItem(k, v); } catch {} },
   };
+  const esc = (s) => String(s).replace(/[&<>"]/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[ch]));
 
   let rates = null;        // units of currency per 1 USD
   let updatedAt = null;    // Date of source update
-  let source = '';
   let local = store.get(STORE_LOCAL) || 'THB';
-  // The "anchor" is the value the user last typed; everything else is derived from it.
+  let place = store.get(STORE_PLACE) || null;   // country code for the headline, if known
+  // The "anchor" is the value she last typed; everything else is derived from it.
   let anchor = { code: local, value: parseFloat(store.get(STORE_AMOUNT)) || 100 };
 
-  const names = (() => {
-    try { return new Intl.DisplayNames(['en'], { type: 'currency' }); } catch { return null; }
-  })();
-  const nameOf = (c) => (names && names.of(c)) || c;
+  const currencyNames = (() => { try { return new Intl.DisplayNames(['en'], { type: 'currency' }); } catch { return null; } })();
+  const regionNames = (() => { try { return new Intl.DisplayNames(['en'], { type: 'region' }); } catch { return null; } })();
+  const nameOf = (c) => { try { return (currencyNames && currencyNames.of(c)) || c; } catch { return c; } };
+  const countryName = (cc) => { try { return (regionNames && regionNames.of(cc)) || cc; } catch { return cc; } };
+
+  // Countries using each currency, for search ("japan" → JPY, "france" → EUR).
+  const COUNTRIES_BY_CURRENCY = {};
+  for (const [cc, cur] of Object.entries(COUNTRY_CURRENCY)) (COUNTRIES_BY_CURRENCY[cur] ||= []).push(cc);
+
+  // The country a currency "belongs" to, when there is an obvious one (JPY → JP, but not EUR).
+  const homeCountry = (c) => (COUNTRY_CURRENCY[c.slice(0, 2)] === c ? c.slice(0, 2) : null);
 
   // Currency code → flag emoji (first two letters are usually the ISO country).
   const FLAG_OVERRIDE = { EUR: '🇪🇺', XAF: '🌍', XOF: '🌍', XCD: '🌎', XPF: '🌏', ANG: '🇨🇼', XDR: '🌐' };
-  const flagOf = (c) => FLAG_OVERRIDE[c] ||
-    String.fromCodePoint(...[...c.slice(0, 2)].map(ch => 0x1F1E6 + ch.charCodeAt(0) - 65));
+  const flagOfCountry = (cc) => String.fromCodePoint(...[...cc].map(ch => 0x1F1E6 + ch.charCodeAt(0) - 65));
+  const flagOf = (c) => FLAG_OVERRIDE[c] || flagOfCountry(c.slice(0, 2));
 
   const decimalsOf = (c) => {
-    try {
-      return new Intl.NumberFormat('en', { style: 'currency', currency: c }).resolvedOptions().maximumFractionDigits;
-    } catch { return 2; }
+    try { return new Intl.NumberFormat('en', { style: 'currency', currency: c }).resolvedOptions().maximumFractionDigits; }
+    catch { return 2; }
   };
   const fmt = (n, c) => {
     if (!isFinite(n)) return '';
     const d = decimalsOf(c);
     return n.toLocaleString('en-US', { minimumFractionDigits: d, maximumFractionDigits: d });
   };
+  const fmtRate = (n) => {
+    if (n >= 100) return n.toLocaleString('en-US', { maximumFractionDigits: 2 });
+    if (n >= 1) return n.toLocaleString('en-US', { maximumFractionDigits: 4 });
+    return n.toLocaleString('en-US', { maximumSignificantDigits: 4 });
+  };
   const parse = (s) => parseFloat(String(s).replace(/[^0-9.\-]/g, ''));
-
   const convert = (value, from, to) => value / rates[from] * rates[to];
 
   // ---------- Rate fetching (two free, key-less sources) ----------
@@ -291,7 +446,7 @@
     const r = await fetch('https://open.er-api.com/v6/latest/USD', { cache: 'no-store' });
     const j = await r.json();
     if (j.result !== 'success') throw new Error('bad response');
-    return { rates: j.rates, updatedAt: new Date(j.time_last_update_unix * 1000), source: 'open.er-api.com' };
+    return { rates: j.rates, updatedAt: new Date(j.time_last_update_unix * 1000) };
   }
   async function fetchFallback() {
     const r = await fetch('https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@latest/v1/currencies/usd.min.json', { cache: 'no-store' });
@@ -301,7 +456,11 @@
       if (/^[a-z]{3}$/.test(k) && typeof v === 'number') out[k.toUpperCase()] = v;
     }
     out.USD = 1;
-    return { rates: out, updatedAt: new Date(j.date + 'T00:00:00Z'), source: 'currency-api' };
+    return { rates: out, updatedAt: new Date(j.date + 'T00:00:00Z') };
+  }
+
+  function readSaved() {
+    try { return JSON.parse(store.get(STORE_RATES)); } catch { return null; }
   }
 
   async function loadRates() {
@@ -309,24 +468,20 @@
     for (const fn of [fetchPrimary, fetchFallback]) {
       try {
         const res = await fn();
-        rates = res.rates; updatedAt = res.updatedAt; source = res.source;
-        store.set(STORE_RATES, JSON.stringify({ rates, updatedAt: updatedAt.toISOString(), source, fetchedAt: Date.now() }));
+        rates = res.rates; updatedAt = res.updatedAt;
+        store.set(STORE_RATES, JSON.stringify({ rates, updatedAt: updatedAt.toISOString(), fetchedAt: Date.now() }));
         afterRates(true);
         return;
-      } catch (e) { /* try next source */ }
+      } catch { /* try next source */ }
     }
     // Both failed — use saved rates if we have them (e.g. no wifi on board).
     const saved = readSaved();
     if (saved) {
-      rates = saved.rates; updatedAt = new Date(saved.updatedAt); source = saved.source;
+      rates = saved.rates; updatedAt = new Date(saved.updatedAt);
       afterRates(false);
     } else {
-      setStatus('err', 'Could not load rates. Check your connection.');
+      setStatus('err', 'Can’t load rates. Check your connection.');
     }
-  }
-
-  function readSaved() {
-    try { return JSON.parse(store.get(STORE_RATES)); } catch { return null; }
   }
 
   function timeAgo(d) {
@@ -335,7 +490,7 @@
     const m = Math.round(s / 60);
     if (m < 90) return `${m} min ago`;
     const h = Math.round(m / 60);
-    if (h < 36) return `${h} h ago`;
+    if (h < 36) return `${h} hr ago`;
     return `${Math.round(h / 24)} days ago`;
   }
 
@@ -347,114 +502,205 @@
   let lastLive = false;
   function refreshStatus() {
     if (!updatedAt) return;
-    const when = updatedAt.toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
-    if (lastLive) setStatus('live', `Live · rates from ${when} (${timeAgo(updatedAt)})`);
-    else setStatus('stale', `Offline · using saved rates from ${when}`);
+    if (lastLive) setStatus('live', `Live rates · updated ${timeAgo(updatedAt)}`);
+    else setStatus('stale', `Offline · saved rates from ${updatedAt.toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}`);
   }
 
   function afterRates(live) {
     lastLive = live;
-    refreshStatus();
-    buildSelect();
-    render();
-  }
-
-  // ---------- UI ----------
-  function buildSelect() {
-    const sel = $('localSel');
-    const codes = Object.keys(rates).filter(c => /^[A-Z]{3}$/.test(c))
-      .sort((a, b) => nameOf(a).localeCompare(nameOf(b)));
     if (!rates[local]) local = 'USD';
-    sel.innerHTML = codes.map(c =>
-      `<option value="${c}"${c === local ? ' selected' : ''}>${flagOf(c)}  ${c} — ${nameOf(c)}</option>`).join('');
-    buildQuick();
-  }
-
-  function buildQuick() {
-    const chips = [...new Set([local, ...QUICK])].filter(c => rates[c] && !FAVOURITES.includes(c)).slice(0, 6);
-    $('quick').innerHTML = chips.map(c =>
-      `<button type="button" data-code="${c}">${flagOf(c)} ${c}</button>`).join('');
-  }
-
-  function setLocal(code) {
-    // Keep the displayed local amount meaningful when switching country.
-    const baseValue = rates ? convert(anchor.value, anchor.code, 'USD') : anchor.value;
-    local = code;
-    store.set(STORE_LOCAL, code);
-    if (rates && !FAVOURITES.includes(anchor.code)) {
-      anchor = { code, value: Math.round(convert(baseValue, 'USD', code)) || 100 };
-    }
-    if (!rates) { anchor = { code, value: anchor.value }; return; }
-    $('localSel').value = code;
-    buildQuick();
+    refreshStatus();
     render();
+    if (document.body.classList.contains('picking')) renderResults();
   }
 
-  function rowCodes() {
-    return [local, ...FAVOURITES.filter(c => c !== local)];
+  // ---------- Main view ----------
+  function renderHero(detected) {
+    const cc = place && COUNTRY_CURRENCY[place] === local ? place : homeCountry(local);
+    $('eyebrow').textContent = detected ? 'You’re in' : 'Local currency';
+    $('place').textContent = cc ? countryName(cc) : nameOf(local);
+    $('placeSub').textContent = cc ? `${nameOf(local)} · ${local}` : local;
   }
 
+  let heroDetected = false;
   function render() {
+    renderHero(heroDetected);
     if (!rates) return;
-    const codes = rowCodes();
+    if (!rates[anchor.code]) anchor = { code: local, value: anchor.value };
+
+    const localCard = $('localCard');
+    if (localCard.dataset.code !== local) {
+      localCard.dataset.code = local;
+      localCard.innerHTML = `
+        <div class="local-head">
+          <span class="flag">${flagOf(local)}</span>
+          <span class="code">${local}</span>
+          <span class="name">${esc(nameOf(local))}</span>
+        </div>
+        <input class="big amt-input" data-code="${local}" inputmode="decimal" autocomplete="off" aria-label="${esc(nameOf(local))} amount">
+        <div class="hint" id="localHint"></div>`;
+    }
+
+    const codes = FAVOURITES.filter(c => c !== local && rates[c]);
     const rowsEl = $('rows');
     // Rebuild rows only if the set of currencies changed (keeps focus while typing).
     if (rowsEl.dataset.codes !== codes.join(',')) {
       rowsEl.dataset.codes = codes.join(',');
       rowsEl.innerHTML = codes.map(c => `
-        <div class="row${c === local ? ' is-local' : ''}">
-          <div class="flag">${flagOf(c)}</div>
-          <div class="meta">
-            <span class="code">${c}${c === local ? ' · local' : ''}</span>
-            <span class="name">${nameOf(c)}</span>
+        <div class="row">
+          <span class="flag">${flagOf(c)}</span>
+          <div>
+            <div class="code">${c}</div>
+            <div class="rate" data-rate="${c}"></div>
           </div>
-          <input class="amt" data-code="${c}" inputmode="decimal" autocomplete="off" aria-label="${nameOf(c)} amount">
-          <div class="rate" data-rate="${c}"></div>
+          <input class="amt amt-input" data-code="${c}" inputmode="decimal" autocomplete="off" aria-label="${esc(nameOf(c))} amount">
         </div>`).join('');
     }
-    if (!rates[anchor.code]) anchor = { code: local, value: anchor.value };
-    for (const input of rowsEl.querySelectorAll('input.amt')) {
+
+    for (const input of document.querySelectorAll('.amt-input')) {
       const c = input.dataset.code;
       if (document.activeElement === input && c === anchor.code) continue; // don't reformat what she's typing
       input.value = fmt(convert(anchor.value, anchor.code, c), c);
     }
     for (const el of rowsEl.querySelectorAll('[data-rate]')) {
       const c = el.dataset.rate;
-      if (c === local) {
-        const ref = FAVOURITES.find(f => f !== local) || 'USD';
-        el.textContent = `1 ${c} = ${fmtRate(convert(1, c, ref))} ${ref}`;
-      } else {
-        el.textContent = `1 ${c} = ${fmtRate(convert(1, c, local))} ${local}  ·  1 ${local} = ${fmtRate(convert(1, local, c))} ${c}`;
-      }
+      el.textContent = `1 ${c} = ${fmtRate(convert(1, c, local))} ${local}`;
     }
+    const ref = local === 'USD' ? 'AED' : 'USD';
+    $('localHint').textContent = `1 ${local} = ${fmtRate(convert(1, local, ref))} ${ref}`;
   }
 
-  function fmtRate(n) {
-    if (n >= 100) return n.toLocaleString('en-US', { maximumFractionDigits: 2 });
-    if (n >= 1) return n.toLocaleString('en-US', { maximumFractionDigits: 4 });
-    return n.toLocaleString('en-US', { maximumSignificantDigits: 4 });
+  function setLocal(code, cc) {
+    // Keep the amount meaningful when switching country.
+    if (rates && rates[anchor.code] && !FAVOURITES.includes(anchor.code)) {
+      const usd = convert(anchor.value, anchor.code, 'USD');
+      anchor = { code, value: Math.round(convert(usd, 'USD', code)) || 100 };
+    } else if (!rates) {
+      anchor = { code, value: anchor.value };
+    }
+    local = code;
+    place = cc || homeCountry(code);
+    store.set(STORE_LOCAL, code);
+    store.set(STORE_PLACE, place || '');
+    const recent = [code, ...readRecent().filter(c => c !== code)].slice(0, 5);
+    store.set(STORE_RECENT, JSON.stringify(recent));
+    render();
+  }
+
+  function readRecent() {
+    try { return JSON.parse(store.get(STORE_RECENT)) || []; } catch { return []; }
+  }
+
+  // ---------- Currency picker (search instead of a long list) ----------
+  function searchCurrencies(q) {
+    const query = q.trim().toLowerCase();
+    const codes = Object.keys(rates || {}).filter(c => /^[A-Z]{3}$/.test(c));
+    if (!query) return null;
+    const hits = [];
+    for (const c of codes) {
+      const name = nameOf(c).toLowerCase();
+      let score = 0, via = null;
+      if (c.toLowerCase() === query) score = 100;
+      else if (c.toLowerCase().startsWith(query)) score = 80;
+      else if (name.startsWith(query)) score = 70;
+      else if (name.split(/\s+/).some(w => w.startsWith(query))) score = 60;
+      else if (name.includes(query)) score = 40;
+      // Country match (keeps the country for the headline).
+      for (const cc of COUNTRIES_BY_CURRENCY[c] || []) {
+        const cn = countryName(cc).toLowerCase();
+        let s = 0;
+        if (cn === query) s = 95;
+        else if (cn.startsWith(query)) s = 75;
+        else if (cn.split(/[\s-]+/).some(w => w.startsWith(query))) s = 55;
+        else if (query.length > 2 && cn.includes(query)) s = 35;
+        if (s > score) { score = s; via = cc; }
+      }
+      if (score) hits.push({ code: c, via, score });
+    }
+    return hits.sort((a, b) => b.score - a.score || nameOf(a.code).localeCompare(nameOf(b.code))).slice(0, 40);
+  }
+
+  function optHtml({ code, via }) {
+    const title = via ? countryName(via) : nameOf(code);
+    const sub = via ? nameOf(code) : (homeCountry(code) ? countryName(homeCountry(code)) : '');
+    return `<button class="opt${code === local ? ' selected' : ''}" type="button" data-code="${code}" data-cc="${via || ''}">
+      <span class="flag">${via ? flagOfCountry(via) : flagOf(code)}</span>
+      <span><div class="t">${esc(title)}</div>${sub ? `<div class="s">${esc(sub)}</div>` : ''}</span>
+      <span class="c">${code}</span>
+    </button>`;
+  }
+
+  let firstResult = null;
+  function renderResults() {
+    const out = $('results');
+    if (!rates) { out.innerHTML = '<p class="empty">Rates are still loading…</p>'; return; }
+    const hits = searchCurrencies($('search').value);
+    if (hits) {
+      firstResult = hits[0] || null;
+      out.innerHTML = hits.length
+        ? `<div class="group">${hits.map(optHtml).join('')}</div>`
+        : `<p class="empty">No currency matches “${esc($('search').value)}”.<br>Try a country (Japan), a currency (yen) or a code (JPY).</p>`;
+      return;
+    }
+    firstResult = null;
+    const recent = readRecent().filter(c => rates[c]);
+    const suggested = SUGGESTED.filter(c => rates[c] && !recent.includes(c));
+    out.innerHTML =
+      (recent.length ? `<div class="group-label">Recent</div><div class="group">${recent.map(code => optHtml({ code })).join('')}</div>` : '') +
+      `<div class="group-label">Popular destinations</div><div class="group">${suggested.map(code => optHtml({ code })).join('')}</div>` +
+      `<div class="group-label">Your currencies</div><div class="group">${FAVOURITES.map(code => optHtml({ code })).join('')}</div>`;
+  }
+
+  function openPicker() {
+    $('search').value = '';
+    renderResults();
+    document.body.classList.add('picking');
+    $('results').scrollTop = 0;
+    setTimeout(() => $('search').focus(), 50);
+  }
+  function closePicker() {
+    document.body.classList.remove('picking');
+    $('search').blur();
   }
 
   // ---------- Events ----------
-  $('rows').addEventListener('input', (e) => {
-    const input = e.target.closest('input.amt');
+  document.addEventListener('input', (e) => {
+    const input = e.target.closest('.amt-input');
     if (!input) return;
     const v = parse(input.value);
     anchor = { code: input.dataset.code, value: isFinite(v) ? v : 0 };
     store.set(STORE_AMOUNT, String(convert(anchor.value, anchor.code, local)));
     render();
   });
-  $('rows').addEventListener('focusin', (e) => {
-    if (e.target.matches('input.amt')) setTimeout(() => e.target.select(), 0);
+  document.addEventListener('focusin', (e) => {
+    if (e.target.matches('.amt-input')) setTimeout(() => e.target.select(), 0);
   });
-  $('rows').addEventListener('focusout', (e) => {
-    if (e.target.matches('input.amt')) render();
+  document.addEventListener('focusout', (e) => {
+    if (e.target.matches('.amt-input')) render();
   });
-  $('localSel').addEventListener('change', (e) => setLocal(e.target.value));
-  $('quick').addEventListener('click', (e) => {
-    const b = e.target.closest('button[data-code]');
-    if (b) setLocal(b.dataset.code);
+
+  $('changeBtn').addEventListener('click', openPicker);
+  $('doneBtn').addEventListener('click', closePicker);
+  $('scrim').addEventListener('click', closePicker);
+  $('search').addEventListener('input', renderResults);
+  $('search').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && firstResult) {
+      heroDetected = false;
+      setLocal(firstResult.code, firstResult.via);
+      closePicker();
+    }
   });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && document.body.classList.contains('picking')) closePicker();
+  });
+  $('results').addEventListener('click', (e) => {
+    const b = e.target.closest('.opt');
+    if (!b) return;
+    heroDetected = false;
+    setLocal(b.dataset.code, b.dataset.cc || null);
+    closePicker();
+  });
+
   $('refreshBtn').addEventListener('click', loadRates);
   $('locateBtn').addEventListener('click', () => detectLocation(true));
   document.addEventListener('visibilitychange', () => {
@@ -464,11 +710,6 @@
   });
 
   // ---------- Location → local currency ----------
-  const regionNames = (() => {
-    try { return new Intl.DisplayNames(['en'], { type: 'region' }); } catch { return null; }
-  })();
-  const countryName = (cc) => (regionNames && regionNames.of(cc)) || cc;
-
   function getPosition() {
     return new Promise((resolve, reject) => {
       if (!navigator.geolocation) return reject(new Error('no geolocation'));
@@ -479,8 +720,7 @@
 
   // GPS / network position, turned into a country code.
   async function countryFromGps() {
-    const pos = await getPosition();
-    const { latitude, longitude } = pos.coords;
+    const { latitude, longitude } = (await getPosition()).coords;
     const r = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=en`);
     const j = await r.json();
     if (!j.countryCode) throw new Error('no country');
@@ -504,34 +744,40 @@
     lastDetect = Date.now();
     const btn = $('locateBtn');
     btn.disabled = true;
-    btn.textContent = '📍 Locating…';
-    let cc = null, how = '';
-    try { cc = await countryFromGps(); how = 'GPS'; }
-    catch {
-      try { cc = await countryFromIp(); how = 'network'; } catch {}
-    }
+    btn.textContent = 'Locating…';
+    let cc = null;
+    try { cc = await countryFromGps(); }
+    catch { try { cc = await countryFromIp(); } catch {} }
     btn.disabled = false;
-    btn.textContent = '📍 Detect';
+    btn.textContent = 'Use my location';
     detecting = false;
 
     const cur = cc && COUNTRY_CURRENCY[cc];
     if (!cur) {
-      if (manual) $('detected').textContent = 'Could not detect location — pick the currency above.';
+      if (manual) setStatus('err', 'Couldn’t find your location. Choose a currency instead.');
       return;
     }
-    $('detected').textContent = `📍 Detected ${countryName(cc)} (${how})`;
     // Only switch when she has moved to a new country (or asked), so a manual pick sticks until the next trip.
     if (manual || cc !== store.get(STORE_COUNTRY)) {
       store.set(STORE_COUNTRY, cc);
-      if (!rates || rates[cur]) setLocal(cur);
+      if (!rates || rates[cur]) {
+        heroDetected = true;
+        setLocal(cur, cc);
+      }
+    } else if (local === cur) {
+      heroDetected = true;
+      place = cc;
+      render();
     }
   }
 
   // ---------- Start ----------
   const saved = readSaved();
   if (saved && saved.rates) {
-    rates = saved.rates; updatedAt = new Date(saved.updatedAt); source = saved.source;
+    rates = saved.rates; updatedAt = new Date(saved.updatedAt);
     afterRates(false);
+  } else {
+    render();
   }
   loadRates();
   detectLocation(false);

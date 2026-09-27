@@ -4,7 +4,7 @@ Currency exchange calculator for Zina.
 
 A one-page, phone-friendly currency calculator for cabin crew.
 
-- The **local currency is set automatically** from her location: phone GPS first (asks permission once), falling back to the network's location. It re-checks when the app is reopened, and a manual pick sticks until she's in a new country. Tap **📍 Detect** to re-check any time, or pick from the dropdown / one-tap chips.
+- The **local currency is set automatically** from her location: phone GPS first (asks permission once), falling back to the network location. It re-checks when the app is reopened, and a manual choice sticks until she is in a new country. Tap **Use my location** to re-check, or **Change currency** to search by country, currency name or code (e.g. "Japan", "yen", "JPY").
 - **AED, KRW, CAD and USD** are always shown on the same page.
 - Type an amount in **any** box and all the others convert instantly.
 - **Live rates** (free, no API key): `open.er-api.com`, with `fawazahmed0/currency-api` as a fallback. Auto-refreshes every 5 minutes and whenever the app is reopened.
