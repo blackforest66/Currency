@@ -8,10 +8,10 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Crew FX">
 <title>Crew FX</title>
-<link rel="icon" href="icons/icon.svg?v=2" type="image/svg+xml">
-<link rel="icon" href="icons/favicon-32.png?v=2" sizes="32x32" type="image/png">
-<link rel="apple-touch-icon" href="icons/apple-touch-icon.png?v=2">
-<link rel="manifest" href="manifest.webmanifest?v=2">
+<link rel="icon" href="icons/icon.svg?v=3" type="image/svg+xml">
+<link rel="icon" href="icons/favicon-32.png?v=3" sizes="32x32" type="image/png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png?v=3">
+<link rel="manifest" href="manifest.webmanifest?v=3">
 <script>
 // ---------- Day / night ----------
 // Auto: light between sunrise and sunset where she is (from the last GPS fix), dark at night.
@@ -99,8 +99,8 @@ window.CrewTheme = (() => {
     --ink-2: #6e6e73;
     --ink-3: #86868b;
     --hairline: #d2d2d7;
-    --blue: #0071e3;
-    --link: #0066cc;
+    --accent: #c8102e;
+    --link: #c8102e;
     --field: #f5f5f7;
     --nav: rgba(245, 245, 247, 0.8);
     --scrim: rgba(0, 0, 0, 0.32);
@@ -116,8 +116,8 @@ window.CrewTheme = (() => {
     --ink-2: #a1a1a6;
     --ink-3: #8e8e93;
     --hairline: #38383a;
-    --blue: #0a84ff;
-    --link: #2997ff;
+    --accent: #e0263a;
+    --link: #ff5f6b;
     --field: #2c2c2e;
     --nav: rgba(22, 22, 23, 0.8);
     --scrim: rgba(0, 0, 0, 0.6);
@@ -130,8 +130,8 @@ window.CrewTheme = (() => {
       --ink-2: #a1a1a6;
       --ink-3: #8e8e93;
       --hairline: #38383a;
-      --blue: #0a84ff;
-      --link: #2997ff;
+      --accent: #e0263a;
+      --link: #ff5f6b;
       --field: #2c2c2e;
       --nav: rgba(22, 22, 23, 0.8);
       --scrim: rgba(0, 0, 0, 0.6);
@@ -224,12 +224,12 @@ window.CrewTheme = (() => {
     border-radius: 980px;
     font-size: 15px;
     cursor: pointer;
-    border: 1px solid var(--blue);
+    border: 1px solid var(--accent);
     white-space: nowrap;
     transition: background-color .2s, opacity .2s;
   }
-  .pill.primary { background: var(--blue); color: #fff; }
-  .pill.secondary { background: transparent; color: var(--blue); }
+  .pill.primary { background: var(--accent); color: #fff; }
+  .pill.secondary { background: transparent; color: var(--link); border-color: var(--link); }
   .pill:active { opacity: .7; }
   .pill:disabled { opacity: .5; cursor: default; }
   .status {
@@ -267,7 +267,7 @@ window.CrewTheme = (() => {
     font-variant-numeric: tabular-nums;
     padding: 0;
     outline: none;
-    caret-color: var(--blue);
+    caret-color: var(--accent);
   }
   .local-card .hint { font-size: 13px; color: var(--ink-3); }
 
@@ -317,7 +317,7 @@ window.CrewTheme = (() => {
     padding: 6px 8px;
     outline: none;
     transition: background-color .15s;
-    caret-color: var(--blue);
+    caret-color: var(--accent);
   }
   input.amt:focus { background: var(--field); }
 
@@ -409,7 +409,7 @@ window.CrewTheme = (() => {
   .opt .t { font-size: 17px; }
   .opt .s { font-size: 13px; color: var(--ink-2); }
   .opt .c { font-size: 15px; color: var(--ink-2); font-variant-numeric: tabular-nums; }
-  .opt.selected .c { color: var(--blue); font-weight: 600; }
+  .opt.selected .c { color: var(--accent); font-weight: 600; }
   .empty { color: var(--ink-2); text-align: center; padding: 32px 16px; font-size: 15px; }
   .group { display: flex; flex-direction: column; }
 </style>
@@ -417,7 +417,7 @@ window.CrewTheme = (() => {
 <body>
 <div class="app">
   <header class="top">
-    <div class="brand"><img src="icons/icon.svg?v=2" alt="">Crew FX</div>
+    <div class="brand"><img src="icons/icon.svg?v=3" alt="">Crew FX</div>
     <div class="top-actions">
       <button class="theme-btn" id="themeBtn" type="button" aria-label="Day/night mode"></button>
       <button class="nav-link" id="refreshBtn" type="button">Refresh rates</button>
