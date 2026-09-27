@@ -146,6 +146,20 @@
     text-align: right;
   }
   input.amt:focus { outline: none; border-color: var(--focus); }
+  .label-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
+  .label-row label.small { margin-bottom: 0; }
+  button.locate {
+    font: inherit;
+    font-size: 13px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    border: 1px solid var(--line);
+    background: var(--bg);
+    color: var(--ink);
+    cursor: pointer;
+  }
+  button.locate:disabled { opacity: .6; }
+  .detected { font-size: 12px; color: var(--muted); margin-top: 6px; min-height: 1em; }
   .quick { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
   .quick button {
     flex: 1 1 auto;
@@ -178,8 +192,12 @@
 <main>
   <div class="wrap">
     <section class="local">
-      <label class="small" for="localSel">I'm in (local currency)</label>
+      <div class="label-row">
+        <label class="small" for="localSel">I'm in (local currency)</label>
+        <button class="locate" id="locateBtn" type="button">📍 Detect</button>
+      </div>
       <select id="localSel"></select>
+      <div class="detected" id="detected"></div>
       <div class="quick" id="quick"></div>
     </section>
 
@@ -200,6 +218,29 @@
   const STORE_RATES = 'crewfx.rates';
   const STORE_LOCAL = 'crewfx.local';
   const STORE_AMOUNT = 'crewfx.amount';
+  const STORE_COUNTRY = 'crewfx.country';
+  const DETECT_EVERY_MS = 30 * 60 * 1000;
+
+  // ISO country code → currency code.
+  const COUNTRY_CURRENCY = Object.fromEntries(`
+    AD:EUR AE:AED AF:AFN AG:XCD AI:XCD AL:ALL AM:AMD AO:AOA AR:ARS AS:USD AT:EUR AU:AUD AW:AWG AX:EUR AZ:AZN
+    BA:BAM BB:BBD BD:BDT BE:EUR BF:XOF BG:BGN BH:BHD BI:BIF BJ:XOF BL:EUR BM:BMD BN:BND BO:BOB BQ:USD BR:BRL
+    BS:BSD BT:BTN BW:BWP BY:BYN BZ:BZD CA:CAD CC:AUD CD:CDF CF:XAF CG:XAF CH:CHF CI:XOF CK:NZD CL:CLP CM:XAF
+    CN:CNY CO:COP CR:CRC CU:CUP CV:CVE CW:ANG CX:AUD CY:EUR CZ:CZK DE:EUR DJ:DJF DK:DKK DM:XCD DO:DOP DZ:DZD
+    EC:USD EE:EUR EG:EGP EH:MAD ER:ERN ES:EUR ET:ETB FI:EUR FJ:FJD FK:FKP FM:USD FO:DKK FR:EUR GA:XAF GB:GBP
+    GD:XCD GE:GEL GF:EUR GG:GBP GH:GHS GI:GIP GL:DKK GM:GMD GN:GNF GP:EUR GQ:XAF GR:EUR GT:GTQ GU:USD GW:XOF
+    GY:GYD HK:HKD HN:HNL HR:EUR HT:HTG HU:HUF ID:IDR IE:EUR IL:ILS IM:GBP IN:INR IO:USD IQ:IQD IR:IRR IS:ISK
+    IT:EUR JE:GBP JM:JMD JO:JOD JP:JPY KE:KES KG:KGS KH:KHR KI:AUD KM:KMF KN:XCD KP:KPW KR:KRW KW:KWD KY:KYD
+    KZ:KZT LA:LAK LB:LBP LC:XCD LI:CHF LK:LKR LR:LRD LS:LSL LT:EUR LU:EUR LV:EUR LY:LYD MA:MAD MC:EUR MD:MDL
+    ME:EUR MF:EUR MG:MGA MH:USD MK:MKD ML:XOF MM:MMK MN:MNT MO:MOP MP:USD MQ:EUR MR:MRU MS:XCD MT:EUR MU:MUR
+    MV:MVR MW:MWK MX:MXN MY:MYR MZ:MZN NA:NAD NC:XPF NE:XOF NF:AUD NG:NGN NI:NIO NL:EUR NO:NOK NP:NPR NR:AUD
+    NU:NZD NZ:NZD OM:OMR PA:PAB PE:PEN PF:XPF PG:PGK PH:PHP PK:PKR PL:PLN PM:EUR PN:NZD PR:USD PS:ILS PT:EUR
+    PW:USD PY:PYG QA:QAR RE:EUR RO:RON RS:RSD RU:RUB RW:RWF SA:SAR SB:SBD SC:SCR SD:SDG SE:SEK SG:SGD SH:SHP
+    SI:EUR SK:EUR SL:SLE SM:EUR SN:XOF SO:SOS SR:SRD SS:SSP ST:STN SV:USD SX:ANG SY:SYP SZ:SZL TC:USD TD:XAF
+    TG:XOF TH:THB TJ:TJS TK:NZD TL:USD TM:TMT TN:TND TO:TOP TR:TRY TT:TTD TV:AUD TW:TWD TZ:TZS UA:UAH UG:UGX
+    UM:USD US:USD UY:UYU UZ:UZS VA:EUR VC:XCD VE:VES VG:USD VI:USD VN:VND VU:VUV WF:XPF WS:WST XK:EUR YE:YER
+    YT:EUR ZA:ZAR ZM:ZMW ZW:ZWL
+  `.trim().split(/\s+/).map(p => p.split(':')));
 
   // Common crew destinations shown as one-tap chips (plus the last used).
   const QUICK = ['THB', 'EUR', 'GBP', 'JPY', 'INR', 'SGD'];
@@ -339,6 +380,7 @@
     if (rates && !FAVOURITES.includes(anchor.code)) {
       anchor = { code, value: Math.round(convert(baseValue, 'USD', code)) || 100 };
     }
+    if (!rates) { anchor = { code, value: anchor.value }; return; }
     $('localSel').value = code;
     buildQuick();
     render();
@@ -410,9 +452,76 @@
     if (b) setLocal(b.dataset.code);
   });
   $('refreshBtn').addEventListener('click', loadRates);
+  $('locateBtn').addEventListener('click', () => detectLocation(true));
   document.addEventListener('visibilitychange', () => {
-    if (!document.hidden) loadRates();
+    if (document.hidden) return;
+    loadRates();
+    detectLocation(false);
   });
+
+  // ---------- Location → local currency ----------
+  const regionNames = (() => {
+    try { return new Intl.DisplayNames(['en'], { type: 'region' }); } catch { return null; }
+  })();
+  const countryName = (cc) => (regionNames && regionNames.of(cc)) || cc;
+
+  function getPosition() {
+    return new Promise((resolve, reject) => {
+      if (!navigator.geolocation) return reject(new Error('no geolocation'));
+      navigator.geolocation.getCurrentPosition(resolve, reject,
+        { enableHighAccuracy: false, timeout: 10000, maximumAge: 15 * 60 * 1000 });
+    });
+  }
+
+  // GPS / network position, turned into a country code.
+  async function countryFromGps() {
+    const pos = await getPosition();
+    const { latitude, longitude } = pos.coords;
+    const r = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=en`);
+    const j = await r.json();
+    if (!j.countryCode) throw new Error('no country');
+    return j.countryCode.toUpperCase();
+  }
+
+  // IP-based fallback (no permission needed, but can be wrong when roaming on a home SIM).
+  async function countryFromIp() {
+    const r = await fetch('https://get.geojs.io/v1/ip/country.json');
+    const j = await r.json();
+    if (!j.country) throw new Error('no country');
+    return j.country.toUpperCase();
+  }
+
+  let detecting = false;
+  let lastDetect = 0;
+  async function detectLocation(manual) {
+    if (detecting) return;
+    if (!manual && Date.now() - lastDetect < DETECT_EVERY_MS) return;
+    detecting = true;
+    lastDetect = Date.now();
+    const btn = $('locateBtn');
+    btn.disabled = true;
+    btn.textContent = '📍 Locating…';
+    let cc = null, how = '';
+    try { cc = await countryFromGps(); how = 'GPS'; }
+    catch {
+      try { cc = await countryFromIp(); how = 'network'; } catch {}
+    }
+    btn.disabled = false;
+    btn.textContent = '📍 Detect';
+    detecting = false;
+
+    const cur = cc && COUNTRY_CURRENCY[cc];
+    if (!cur) {
+      if (manual) $('detected').textContent = 'Could not detect location — pick the currency above.';
+      return;
+    }
+    $('detected').textContent = `📍 Detected ${countryName(cc)} (${how})`;
+    // Only switch when she has moved to a new country (or asked), so a manual pick sticks until the next trip.
+    if (manual || cc !== store.get(STORE_COUNTRY)) {
+      store.set(STORE_COUNTRY, cc);
+      if (!rates || rates[cur]) setLocal(cur);
+    }
+  }
 
   // ---------- Start ----------
   const saved = readSaved();
@@ -421,6 +530,7 @@
     afterRates(false);
   }
   loadRates();
+  detectLocation(false);
   setInterval(loadRates, REFRESH_MS);
   setInterval(refreshStatus, 30 * 1000);
 })();
