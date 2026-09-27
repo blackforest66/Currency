@@ -1,0 +1,429 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0f2a44">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Crew FX">
+<title>Crew FX</title>
+<style>
+  :root {
+    --bg: #f3f5f8;
+    --card: #ffffff;
+    --ink: #14202e;
+    --muted: #64748b;
+    --line: #e2e8f0;
+    --accent: #0f2a44;
+    --accent-2: #c9a24a;
+    --focus: #2563eb;
+    --ok: #15803d;
+    --warn: #b45309;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0b1320;
+      --card: #142033;
+      --ink: #e8eef6;
+      --muted: #94a3b8;
+      --line: #22324a;
+      --accent: #0a1a2c;
+      --accent-2: #d8b25c;
+      --focus: #60a5fa;
+      --ok: #4ade80;
+      --warn: #fbbf24;
+    }
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font: 16px/1.4 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    min-height: 100vh;
+  }
+  header {
+    background: var(--accent);
+    color: #fff;
+    padding: calc(env(safe-area-inset-top) + 18px) 16px 22px;
+  }
+  .wrap { max-width: 520px; margin: 0 auto; }
+  h1 {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 650;
+    letter-spacing: .2px;
+  }
+  h1 span { color: var(--accent-2); }
+  .status {
+    margin-top: 6px;
+    font-size: 13px;
+    color: #b8c4d4;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .dot { width: 8px; height: 8px; border-radius: 50%; background: #94a3b8; flex: none; }
+  .dot.live { background: #4ade80; }
+  .dot.stale { background: #fbbf24; }
+  .dot.err { background: #f87171; }
+  button.refresh {
+    margin-left: auto;
+    background: transparent;
+    color: #fff;
+    border: 1px solid rgba(255,255,255,.3);
+    border-radius: 999px;
+    padding: 4px 12px;
+    font: inherit;
+    font-size: 13px;
+    cursor: pointer;
+  }
+  button.refresh:active { background: rgba(255,255,255,.1); }
+
+  main { padding: 0 16px 32px; }
+  .local {
+    background: var(--card);
+    border-radius: 16px;
+    margin-top: -12px;
+    padding: 14px 16px 16px;
+    box-shadow: 0 6px 20px rgba(15, 42, 68, .12);
+  }
+  .local label.small {
+    display: block;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    color: var(--muted);
+    margin-bottom: 6px;
+  }
+  select {
+    width: 100%;
+    font: inherit;
+    font-size: 16px;
+    padding: 10px 12px;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: var(--bg);
+    color: var(--ink);
+    appearance: none;
+    background-image: linear-gradient(45deg, transparent 50%, var(--muted) 50%), linear-gradient(135deg, var(--muted) 50%, transparent 50%);
+    background-position: calc(100% - 18px) 50%, calc(100% - 13px) 50%;
+    background-size: 5px 5px;
+    background-repeat: no-repeat;
+  }
+  .rows { margin-top: 14px; display: grid; gap: 10px; }
+  .row {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 12px 14px;
+    display: grid;
+    grid-template-columns: auto 1fr;
+    align-items: center;
+    column-gap: 12px;
+  }
+  .row.is-local { border-color: var(--accent-2); border-width: 2px; }
+  .flag { font-size: 28px; line-height: 1; }
+  .meta { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+  .code { font-weight: 700; font-size: 15px; }
+  .name { color: var(--muted); font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .rate { grid-column: 1 / -1; color: var(--muted); font-size: 12px; margin-top: 6px; }
+  input.amt {
+    grid-column: 1 / -1;
+    margin-top: 6px;
+    width: 100%;
+    font: inherit;
+    font-size: 26px;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    padding: 6px 10px;
+    border: 1px solid transparent;
+    border-radius: 10px;
+    background: var(--bg);
+    color: var(--ink);
+    text-align: right;
+  }
+  input.amt:focus { outline: none; border-color: var(--focus); }
+  .quick { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
+  .quick button {
+    flex: 1 1 auto;
+    font: inherit;
+    font-size: 14px;
+    padding: 8px 10px;
+    border-radius: 999px;
+    border: 1px solid var(--line);
+    background: var(--bg);
+    color: var(--ink);
+    cursor: pointer;
+  }
+  .quick button:active { border-color: var(--focus); }
+  .note { color: var(--muted); font-size: 12px; margin-top: 18px; text-align: center; }
+  .error { color: var(--warn); }
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <h1>Crew <span>FX</span></h1>
+    <div class="status">
+      <span class="dot" id="dot"></span>
+      <span id="statusText">Loading live rates…</span>
+      <button class="refresh" id="refreshBtn" type="button">Refresh</button>
+    </div>
+  </div>
+</header>
+
+<main>
+  <div class="wrap">
+    <section class="local">
+      <label class="small" for="localSel">I'm in (local currency)</label>
+      <select id="localSel"></select>
+      <div class="quick" id="quick"></div>
+    </section>
+
+    <div class="rows" id="rows"></div>
+
+    <p class="note">
+      Type in any box — the others convert instantly.<br>
+      Mid-market rates, auto-refresh every 5 min. Last rates are saved for offline use in flight.
+    </p>
+  </div>
+</main>
+
+<script>
+(() => {
+  // Her most used currencies, always shown.
+  const FAVOURITES = ['AED', 'KRW', 'CAD', 'USD'];
+  const REFRESH_MS = 5 * 60 * 1000;
+  const STORE_RATES = 'crewfx.rates';
+  const STORE_LOCAL = 'crewfx.local';
+  const STORE_AMOUNT = 'crewfx.amount';
+
+  // Common crew destinations shown as one-tap chips (plus the last used).
+  const QUICK = ['THB', 'EUR', 'GBP', 'JPY', 'INR', 'SGD'];
+
+  const $ = (id) => document.getElementById(id);
+  const store = {
+    get(k) { try { return localStorage.getItem(k); } catch { return null; } },
+    set(k, v) { try { localStorage.setItem(k, v); } catch {} },
+  };
+
+  let rates = null;        // units of currency per 1 USD
+  let updatedAt = null;    // Date of source update
+  let source = '';
+  let local = store.get(STORE_LOCAL) || 'THB';
+  // The "anchor" is the value the user last typed; everything else is derived from it.
+  let anchor = { code: local, value: parseFloat(store.get(STORE_AMOUNT)) || 100 };
+
+  const names = (() => {
+    try { return new Intl.DisplayNames(['en'], { type: 'currency' }); } catch { return null; }
+  })();
+  const nameOf = (c) => (names && names.of(c)) || c;
+
+  // Currency code → flag emoji (first two letters are usually the ISO country).
+  const FLAG_OVERRIDE = { EUR: '🇪🇺', XAF: '🌍', XOF: '🌍', XCD: '🌎', XPF: '🌏', ANG: '🇨🇼', XDR: '🌐' };
+  const flagOf = (c) => FLAG_OVERRIDE[c] ||
+    String.fromCodePoint(...[...c.slice(0, 2)].map(ch => 0x1F1E6 + ch.charCodeAt(0) - 65));
+
+  const decimalsOf = (c) => {
+    try {
+      return new Intl.NumberFormat('en', { style: 'currency', currency: c }).resolvedOptions().maximumFractionDigits;
+    } catch { return 2; }
+  };
+  const fmt = (n, c) => {
+    if (!isFinite(n)) return '';
+    const d = decimalsOf(c);
+    return n.toLocaleString('en-US', { minimumFractionDigits: d, maximumFractionDigits: d });
+  };
+  const parse = (s) => parseFloat(String(s).replace(/[^0-9.\-]/g, ''));
+
+  const convert = (value, from, to) => value / rates[from] * rates[to];
+
+  // ---------- Rate fetching (two free, key-less sources) ----------
+  async function fetchPrimary() {
+    const r = await fetch('https://open.er-api.com/v6/latest/USD', { cache: 'no-store' });
+    const j = await r.json();
+    if (j.result !== 'success') throw new Error('bad response');
+    return { rates: j.rates, updatedAt: new Date(j.time_last_update_unix * 1000), source: 'open.er-api.com' };
+  }
+  async function fetchFallback() {
+    const r = await fetch('https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@latest/v1/currencies/usd.min.json', { cache: 'no-store' });
+    const j = await r.json();
+    const out = {};
+    for (const [k, v] of Object.entries(j.usd)) {
+      if (/^[a-z]{3}$/.test(k) && typeof v === 'number') out[k.toUpperCase()] = v;
+    }
+    out.USD = 1;
+    return { rates: out, updatedAt: new Date(j.date + 'T00:00:00Z'), source: 'currency-api' };
+  }
+
+  async function loadRates() {
+    setStatus('', 'Updating rates…');
+    for (const fn of [fetchPrimary, fetchFallback]) {
+      try {
+        const res = await fn();
+        rates = res.rates; updatedAt = res.updatedAt; source = res.source;
+        store.set(STORE_RATES, JSON.stringify({ rates, updatedAt: updatedAt.toISOString(), source, fetchedAt: Date.now() }));
+        afterRates(true);
+        return;
+      } catch (e) { /* try next source */ }
+    }
+    // Both failed — use saved rates if we have them (e.g. no wifi on board).
+    const saved = readSaved();
+    if (saved) {
+      rates = saved.rates; updatedAt = new Date(saved.updatedAt); source = saved.source;
+      afterRates(false);
+    } else {
+      setStatus('err', 'Could not load rates. Check your connection.');
+    }
+  }
+
+  function readSaved() {
+    try { return JSON.parse(store.get(STORE_RATES)); } catch { return null; }
+  }
+
+  function timeAgo(d) {
+    const s = Math.round((Date.now() - d.getTime()) / 1000);
+    if (s < 90) return 'just now';
+    const m = Math.round(s / 60);
+    if (m < 90) return `${m} min ago`;
+    const h = Math.round(m / 60);
+    if (h < 36) return `${h} h ago`;
+    return `${Math.round(h / 24)} days ago`;
+  }
+
+  function setStatus(kind, text) {
+    $('dot').className = 'dot' + (kind ? ' ' + kind : '');
+    $('statusText').textContent = text;
+  }
+
+  let lastLive = false;
+  function refreshStatus() {
+    if (!updatedAt) return;
+    const when = updatedAt.toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+    if (lastLive) setStatus('live', `Live · rates from ${when} (${timeAgo(updatedAt)})`);
+    else setStatus('stale', `Offline · using saved rates from ${when}`);
+  }
+
+  function afterRates(live) {
+    lastLive = live;
+    refreshStatus();
+    buildSelect();
+    render();
+  }
+
+  // ---------- UI ----------
+  function buildSelect() {
+    const sel = $('localSel');
+    const codes = Object.keys(rates).filter(c => /^[A-Z]{3}$/.test(c))
+      .sort((a, b) => nameOf(a).localeCompare(nameOf(b)));
+    if (!rates[local]) local = 'USD';
+    sel.innerHTML = codes.map(c =>
+      `<option value="${c}"${c === local ? ' selected' : ''}>${flagOf(c)}  ${c} — ${nameOf(c)}</option>`).join('');
+    buildQuick();
+  }
+
+  function buildQuick() {
+    const chips = [...new Set([local, ...QUICK])].filter(c => rates[c] && !FAVOURITES.includes(c)).slice(0, 6);
+    $('quick').innerHTML = chips.map(c =>
+      `<button type="button" data-code="${c}">${flagOf(c)} ${c}</button>`).join('');
+  }
+
+  function setLocal(code) {
+    // Keep the displayed local amount meaningful when switching country.
+    const baseValue = rates ? convert(anchor.value, anchor.code, 'USD') : anchor.value;
+    local = code;
+    store.set(STORE_LOCAL, code);
+    if (rates && !FAVOURITES.includes(anchor.code)) {
+      anchor = { code, value: Math.round(convert(baseValue, 'USD', code)) || 100 };
+    }
+    $('localSel').value = code;
+    buildQuick();
+    render();
+  }
+
+  function rowCodes() {
+    return [local, ...FAVOURITES.filter(c => c !== local)];
+  }
+
+  function render() {
+    if (!rates) return;
+    const codes = rowCodes();
+    const rowsEl = $('rows');
+    // Rebuild rows only if the set of currencies changed (keeps focus while typing).
+    if (rowsEl.dataset.codes !== codes.join(',')) {
+      rowsEl.dataset.codes = codes.join(',');
+      rowsEl.innerHTML = codes.map(c => `
+        <div class="row${c === local ? ' is-local' : ''}">
+          <div class="flag">${flagOf(c)}</div>
+          <div class="meta">
+            <span class="code">${c}${c === local ? ' · local' : ''}</span>
+            <span class="name">${nameOf(c)}</span>
+          </div>
+          <input class="amt" data-code="${c}" inputmode="decimal" autocomplete="off" aria-label="${nameOf(c)} amount">
+          <div class="rate" data-rate="${c}"></div>
+        </div>`).join('');
+    }
+    if (!rates[anchor.code]) anchor = { code: local, value: anchor.value };
+    for (const input of rowsEl.querySelectorAll('input.amt')) {
+      const c = input.dataset.code;
+      if (document.activeElement === input && c === anchor.code) continue; // don't reformat what she's typing
+      input.value = fmt(convert(anchor.value, anchor.code, c), c);
+    }
+    for (const el of rowsEl.querySelectorAll('[data-rate]')) {
+      const c = el.dataset.rate;
+      if (c === local) {
+        const ref = FAVOURITES.find(f => f !== local) || 'USD';
+        el.textContent = `1 ${c} = ${fmtRate(convert(1, c, ref))} ${ref}`;
+      } else {
+        el.textContent = `1 ${c} = ${fmtRate(convert(1, c, local))} ${local}  ·  1 ${local} = ${fmtRate(convert(1, local, c))} ${c}`;
+      }
+    }
+  }
+
+  function fmtRate(n) {
+    if (n >= 100) return n.toLocaleString('en-US', { maximumFractionDigits: 2 });
+    if (n >= 1) return n.toLocaleString('en-US', { maximumFractionDigits: 4 });
+    return n.toLocaleString('en-US', { maximumSignificantDigits: 4 });
+  }
+
+  // ---------- Events ----------
+  $('rows').addEventListener('input', (e) => {
+    const input = e.target.closest('input.amt');
+    if (!input) return;
+    const v = parse(input.value);
+    anchor = { code: input.dataset.code, value: isFinite(v) ? v : 0 };
+    store.set(STORE_AMOUNT, String(convert(anchor.value, anchor.code, local)));
+    render();
+  });
+  $('rows').addEventListener('focusin', (e) => {
+    if (e.target.matches('input.amt')) setTimeout(() => e.target.select(), 0);
+  });
+  $('rows').addEventListener('focusout', (e) => {
+    if (e.target.matches('input.amt')) render();
+  });
+  $('localSel').addEventListener('change', (e) => setLocal(e.target.value));
+  $('quick').addEventListener('click', (e) => {
+    const b = e.target.closest('button[data-code]');
+    if (b) setLocal(b.dataset.code);
+  });
+  $('refreshBtn').addEventListener('click', loadRates);
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) loadRates();
+  });
+
+  // ---------- Start ----------
+  const saved = readSaved();
+  if (saved && saved.rates) {
+    rates = saved.rates; updatedAt = new Date(saved.updatedAt); source = saved.source;
+    afterRates(false);
+  }
+  loadRates();
+  setInterval(loadRates, REFRESH_MS);
+  setInterval(refreshStatus, 30 * 1000);
+})();
+</script>
+</body>
+</html>
