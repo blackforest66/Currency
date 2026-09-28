@@ -146,6 +146,8 @@ window.CrewTheme = (() => {
   body { transition: background-color .4s, color .4s; }
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
   html, body { margin: 0; }
+  /* No double-tap zoom when tapping keys quickly; pinch-zoom still works. */
+  html, button, input { touch-action: manipulation; }
   body {
     background: var(--bg);
     color: var(--ink);
@@ -261,20 +263,26 @@ window.CrewTheme = (() => {
   .local-head .flag { font-size: 22px; line-height: 1; }
   .local-head .code { font-weight: 600; }
   .local-head .name { color: var(--ink-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  /* Amount fields look like fields: filled box, border, pencil icon, accent ring when editing. */
+  /* Amount fields: tap the number to type it; tap the calculator icon for + − × ÷. */
   .amount-field { position: relative; margin-top: 8px; }
-  .amount-field .pencil {
-    position: absolute; right: 14px; top: 50%; transform: translateY(-50%);
-    width: 22px; height: 22px; color: var(--ink-3); pointer-events: none;
+  .amount-field.small { margin-top: 0; }
+  .calc-btn {
+    position: absolute; top: 0; bottom: 0; right: 0; width: 52px;
+    display: flex; align-items: center; justify-content: center;
+    border: 0; background: none; padding: 0; cursor: pointer;
+    color: var(--ink-3);
   }
-  .amount-field:focus-within .pencil { color: var(--accent); }
+  .calc-btn svg { width: 24px; height: 24px; }
+  .amount-field.small .calc-btn { right: auto; left: 0; width: 38px; }
+  .amount-field.small .calc-btn svg { width: 20px; height: 20px; }
+  .calc-btn:active, .amount-field:focus-within .calc-btn { color: var(--accent); }
   input.big {
     display: block;
     width: 100%;
     border: 1.5px solid var(--hairline);
     border-radius: 14px;
     background: var(--field);
-    padding: 4px 48px 4px 14px;
+    padding: 4px 56px 4px 14px;
     transition: border-color .15s, box-shadow .15s, background-color .15s;
     color: var(--ink);
     font-size: clamp(34px, 10vw, 46px);
@@ -325,8 +333,8 @@ window.CrewTheme = (() => {
   .row .code { font-weight: 600; font-size: 17px; line-height: 1.2; }
   .row .rate { font-size: 12px; color: var(--ink-2); letter-spacing: -0.01em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   input.amt {
-    width: 32vw;
-    max-width: 190px;
+    width: 36vw;
+    max-width: 210px;
     border: 1.5px solid var(--hairline);
     border-radius: 12px;
     background: var(--field);
@@ -335,11 +343,13 @@ window.CrewTheme = (() => {
     font-size: 21px;
     font-weight: 600;
     font-variant-numeric: tabular-nums;
-    padding: 6px 10px;
+    padding: 6px 10px 6px 38px;
     outline: none;
     transition: border-color .15s, box-shadow .15s, background-color .15s;
     caret-color: var(--accent);
   }
+
+  @media (max-width: 380px) { .row .rate { font-size: 11px; } .row { column-gap: 10px; } }
 
   /* Small phones (iPhone SE / mini): tighten the top half. */
   @media (max-height: 700px) {
@@ -353,7 +363,6 @@ window.CrewTheme = (() => {
   }
 
   /* ---------- Calculator keypad ---------- */
-  input.amt-input { cursor: pointer; caret-color: transparent; }
   input.amt-input.editing {
     border-color: var(--accent);
     background: var(--surface);
@@ -504,7 +513,7 @@ window.CrewTheme = (() => {
   </section>
 
   <div class="card local-card" id="localCard"></div>
-  <h2 class="section-title">Converted · tap a box to calculate</h2>
+  <h2 class="section-title">Converted · tap to edit</h2>
   <div class="card" id="rows"></div>
 </div>
 
@@ -740,8 +749,8 @@ window.CrewTheme = (() => {
           <span class="name">${esc(nameOf(local))}</span>
         </div>
         <div class="amount-field">
-          <input class="big amt-input" data-code="${local}" readonly inputmode="none" aria-label="${esc(nameOf(local))} amount">
-          <svg class="pencil" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16v4z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M13.5 6.5l4 4" stroke="currentColor" stroke-width="1.8"/></svg>
+          <input class="big amt-input" data-code="${local}" inputmode="decimal" enterkeyhint="done" autocomplete="off" aria-label="${esc(nameOf(local))} amount">
+          <button class="calc-btn" type="button" data-calc="${local}" aria-label="Calculator"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="2.5" width="14" height="19" rx="3" fill="none" stroke="currentColor" stroke-width="1.7"/><rect x="8" y="5.5" width="8" height="3.5" rx="1" fill="currentColor" opacity=".55"/><g fill="currentColor"><circle cx="9" cy="12.5" r="1.1"/><circle cx="12" cy="12.5" r="1.1"/><circle cx="15" cy="12.5" r="1.1"/><circle cx="9" cy="16.5" r="1.1"/><circle cx="12" cy="16.5" r="1.1"/><circle cx="15" cy="16.5" r="1.1"/></g></svg></button>
         </div>
         <div class="hint" id="localHint"></div>`;
     }
@@ -758,14 +767,18 @@ window.CrewTheme = (() => {
             <div class="code">${c}</div>
             <div class="rate" data-rate="${c}"></div>
           </div>
-          <input class="amt amt-input" data-code="${c}" readonly inputmode="none" aria-label="${esc(nameOf(c))} amount">
+          <div class="amount-field small">
+            <input class="amt amt-input" data-code="${c}" inputmode="decimal" enterkeyhint="done" autocomplete="off" aria-label="${esc(nameOf(c))} amount">
+            <button class="calc-btn" type="button" data-calc="${c}" aria-label="Calculator"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="2.5" width="14" height="19" rx="3" fill="none" stroke="currentColor" stroke-width="1.7"/><rect x="8" y="5.5" width="8" height="3.5" rx="1" fill="currentColor" opacity=".55"/><g fill="currentColor"><circle cx="9" cy="12.5" r="1.1"/><circle cx="12" cy="12.5" r="1.1"/><circle cx="15" cy="12.5" r="1.1"/><circle cx="9" cy="16.5" r="1.1"/><circle cx="12" cy="16.5" r="1.1"/><circle cx="15" cy="16.5" r="1.1"/></g></svg></button>
+          </div>
         </div>`).join('');
     }
 
     for (const input of document.querySelectorAll('.amt-input')) {
       const c = input.dataset.code;
-      input.value = fmt(convert(anchor.value, anchor.code, c), c);
       input.classList.toggle('editing', pad.open && pad.code === c);
+      if (document.activeElement === input && c === anchor.code) continue; // don't reformat what she's typing
+      input.value = fmt(convert(anchor.value, anchor.code, c), c);
     }
     for (const el of rowsEl.querySelectorAll('[data-rate]')) {
       const c = el.dataset.rate;
@@ -869,7 +882,29 @@ window.CrewTheme = (() => {
   }
 
   // ---------- Events ----------
-  // ---------- Calculator keypad (+ − × ÷), replaces the phone keyboard ----------
+  // ---------- Typing an amount with the phone keyboard ----------
+  const parse = (s) => parseFloat(String(s).replace(/[^0-9.\-]/g, ''));
+  document.addEventListener('input', (e) => {
+    const input = e.target.closest('.amt-input');
+    if (!input) return;
+    const v = parse(input.value);
+    anchor = { code: input.dataset.code, value: isFinite(v) ? v : 0 };
+    store.set(STORE_AMOUNT, String(convert(anchor.value, anchor.code, local)));
+    render();
+  });
+  document.addEventListener('focusin', (e) => {
+    if (!e.target.matches('.amt-input')) return;
+    closePad();
+    setTimeout(() => { try { e.target.setSelectionRange(0, e.target.value.length); } catch { e.target.select(); } }, 0);
+  });
+  document.addEventListener('focusout', (e) => {
+    if (e.target.matches('.amt-input')) render();
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && e.target.matches('.amt-input')) e.target.blur();
+  });
+
+  // ---------- Calculator keypad (+ − × ÷), opened from the calculator icon ----------
   const pad = { open: false, code: null, expr: '', fresh: true };
   const OPS = { '+': '+', '-': '−', '*': '×', '/': '÷' };
 
@@ -915,6 +950,7 @@ window.CrewTheme = (() => {
 
   function openPad(code) {
     if (!rates) return;
+    if (document.activeElement && document.activeElement.blur) document.activeElement.blur();   // hide the phone keyboard
     pad.open = true;
     pad.code = code;
     // Start from the amount shown in that box; the first number typed replaces it.
@@ -960,8 +996,8 @@ window.CrewTheme = (() => {
   }
 
   document.addEventListener('click', (e) => {
-    const input = e.target.closest('.amt-input');
-    if (input) { openPad(input.dataset.code); return; }
+    const calc = e.target.closest('[data-calc]');
+    if (calc) { openPad(calc.dataset.calc); return; }
     const key = e.target.closest('[data-key]');
     if (key) { pressKey(key.dataset.key); return; }
     if (pad.open && !e.target.closest('#pad')) closePad();
