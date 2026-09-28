@@ -1,16 +1,16 @@
 // Crew FX offline support: keeps the app itself on the phone so it opens with no signal.
 // Exchange rates are not handled here; the page saves the latest rates in localStorage.
-const CACHE = 'crewfx-v1';
+const CACHE = 'crewfx-v2';
 const APP_SHELL = [
   './',
   'index.html',
-  'manifest.webmanifest?v=6',
-  'icons/icon.svg?v=6',
-  'icons/favicon-32.png?v=6',
-  'icons/apple-touch-icon.png?v=6',
-  'icons/icon-192.png?v=6',
-  'icons/icon-512.png?v=6',
-  'icons/icon-maskable-512.png?v=6',
+  'manifest.webmanifest?v=7',
+  'icons/icon.svg?v=7',
+  'icons/favicon-32.png?v=7',
+  'icons/apple-touch-icon.png?v=7',
+  'icons/icon-192.png?v=7',
+  'icons/icon-512.png?v=7',
+  'icons/icon-maskable-512.png?v=7',
 ];
 const NETWORK_TIMEOUT_MS = 3500;   // aircraft / hotel wifi can hang; fall back to the saved copy
 
