@@ -16,6 +16,9 @@
 // ---------- Day / night ----------
 // Auto: light between sunrise and sunset where she is (from the last GPS fix), dark at night.
 // Without a location it uses the phone's clock (07:00–19:00 is day). She can also force Light or Dark.
+// Opened from the iPhone home screen (not Safari)?
+if (navigator.standalone === true) document.documentElement.classList.add('ios-app');
+
 window.CrewTheme = (() => {
   const MODES = ['auto', 'light', 'dark'];
   const get = (k) => { try { return localStorage.getItem(k); } catch { return null; } };
@@ -177,6 +180,9 @@ window.CrewTheme = (() => {
   }
 
   /* ---------- Top bar ---------- */
+  /* iPhone home-screen app: iOS blurs the strip under the status bar, so start the content below it. */
+  .ios-app .app { padding-top: 44px; }
+  @media (max-height: 700px) { .ios-app .app { padding-top: 30px; } }
   .top {
     flex: none;
     height: 44px;
